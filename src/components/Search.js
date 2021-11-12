@@ -2,10 +2,8 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 
 const Search = () => {
-    const [term, setTerm] = useState('');
+    const [term, setTerm] = useState('programming');
     const [results, setResults] = useState([]);
-
-    console.log('Results', results);
 
     useEffect(() => {
         const search = async () => {
@@ -22,9 +20,42 @@ const Search = () => {
             setResults(data.query.search);
         };
 
-        if (term)
+        if (term && !results.length) {
             search();
+        } else {
+            const timeoutId = setTimeout(() => {
+                if (term) {
+                    search();
+                }
+            }, 1000);
+
+            return () => {
+                clearTimeout(timeoutId);
+            };
+        }
     }, [term]);
+
+    const renderedResults = results.map(result => {
+        const snippet = result.snippet.replaceAll('<span class="searchmatch">', '').replaceAll('</span>', '');
+
+        return (
+            <div key={result.pageid} className="item">
+                <div className="right floated content">
+                    <a
+                        className="ui button"
+                        href={`https://en.wikipedia.org/?curid=${result.pageid}`}
+                        target="_blank"
+                    >Go</a>
+                </div>
+                <div className="content">
+                    <div className="header">
+                        {result.title}
+                    </div>
+                    {`${snippet}...`}
+                </div>
+            </div>
+        );
+    });
 
     return (
         <div>
@@ -39,7 +70,7 @@ const Search = () => {
                 </div>
             </div>
             <div className="ui celled list">
-
+                {renderedResults}
             </div>
         </div>
     );
